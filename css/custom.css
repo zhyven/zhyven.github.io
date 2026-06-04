@@ -1,0 +1,627 @@
+/* ===========================================
+   液态暗色 · 潮汐过后 (Fluid Dark)
+   背景弥散光 + 半透明玻璃卡片
+   =========================================== */
+:root {
+
+  /* 玻璃卡片背景 */
+  --glass-bg:             rgba(18, 18, 24, 0.65);
+  --glass-bg-hover:       rgba(25, 25, 35, 0.8);
+  --glass-border:         rgba(255, 255, 255, 0.08);
+  --glass-border-hover:   rgba(255, 255, 255, 0.18);
+
+  /* 文字层级保持不变 */
+  --text-primary:        #FFFFFF;
+  --text-secondary:      #D2D2DC;
+  --text-tertiary:       #9A9AAC;
+  --text-muted:          #6A6A7A;
+
+  /* 新的主交互色：极淡冷灰，仅用于微妙的 hover 反馈 */
+  --hover-soft:          #C8CDD8;   /* 比白色略暗，有微弱蓝灰倾向 */
+  --hover-subtle:        #B0B5C2;   /* 用于次要链接 */
+  --hover-bg:            rgba(255, 255, 255, 0.06); /* 标签胶囊 hover 背景 */
+
+  /* 流体光谱（从 intro 延续的色调） */
+  --fluid-purple:         #8B5CF6;
+  --fluid-cyan:           #22D3EE;
+  --fluid-magenta:        #EC4899;
+  --accent-primary:       #A78BFA;  /* 柔紫作为主交互色 */
+  --accent-secondary:     #2DD4BF;
+  --accent-warning:       #FBBF24;
+
+  /* 弥散光斑色彩 */
+  --glow-color-1:         rgba(139, 92, 246, 0.25);
+  --glow-color-2:         rgba(34, 211, 238, 0.20);
+  --glow-color-3:         rgba(236, 72, 153, 0.18);
+
+  /* 阴影采用光晕而非投影 */
+  --shadow-glass:         0 8px 32px rgba(0, 0, 0, 0.5), 
+                          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-glass-hover:   0 12px 40px rgba(0, 0, 0, 0.7),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  --radius-card:          16px;
+  --radius-sm:            10px;
+  --transition-smooth:    0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --blur-amount:          20px;
+}
+
+/* ===========================================
+   背景：流动的弥散光斑（潮汐余波）
+   =========================================== */
+body {
+  background: #0D0D12;
+  margin: 0;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 三个缓慢移动的液态光斑 */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+body::before {
+  width: 60vw;
+  height: 60vw;
+  background: rgba(139, 92, 246, 0.25);
+  top: -20%;
+  left: -15%;
+  animation: fluidDrift1 20s ease-in-out infinite alternate;
+}
+
+body::after {
+  width: 50vw;
+  height: 50vw;
+  background: rgba(34, 211, 238, 0.20);
+  bottom: -15%;
+  right: -10%;
+  animation: fluidDrift2 25s ease-in-out infinite alternate;
+}
+
+/* 第三个光斑通过额外元素实现（或利用 wrapper 的伪元素） */
+#content-inner {
+  position: relative;
+  z-index: 1;
+}
+
+#content-inner::before {
+  content: "";
+  position: fixed;
+  width: 40vw;
+  height: 40vw;
+  background: rgba(236, 72, 153, 0.18);
+  border-radius: 50%;
+  filter: blur(100px);
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+  animation: fluidDrift3 30s ease-in-out infinite alternate;
+}
+
+@keyframes fluidDrift1 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(8%, 10%) scale(1.1); }
+}
+@keyframes fluidDrift2 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-5%, -8%) scale(1.15); }
+}
+@keyframes fluidDrift3 {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-48%, -52%) scale(1.2); }
+}
+
+/* ===========================================
+   卡片：液态玻璃效果
+   =========================================== */
+.card-widget,
+#recent-posts .recent-post-item,
+#post,
+#archive,
+#page,
+#tag,
+#category {
+  background: rgba(18, 18, 24, 0.65);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border-radius: var(--radius-card);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: all var(--transition-smooth);
+  position: relative;
+}
+
+/* 卡片顶部微光高光（液体表面张力边缘） */
+.card-widget::before,
+#recent-posts .recent-post-item::before,
+#post::before,
+#archive::before,
+#page::before,
+#tag::before,
+#category::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity var(--transition-smooth);
+}
+
+#recent-posts .recent-post-item:hover::before {
+  opacity: 1;
+}
+
+#recent-posts .recent-post-item:hover {
+  background: rgba(25, 25, 35, 0.8);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: var(--shadow-glass-hover);
+  transform: translateY(-2px);
+}
+
+/* ===========================================
+   文字与交互
+   =========================================== */
+a.article-title {
+  font-weight: 600;
+  color: #FFFFFF!important;
+  transition: color 0.2s ease!important;
+}
+
+a.article-title:hover {
+  color: #C8CDD8!important;
+}
+
+.article-meta-wrap,
+.article-meta-wrap a {
+  color: #9A9AAC!important;
+  transition: color 0.2s;
+}
+
+.article-meta-wrap a:hover {
+  color: #B0B5C2!important;
+}
+
+.recent-post-info {
+  color: #D2D2DC!important;
+}
+
+/* 分页 */
+.pagination a.page-number,
+.pagination .extend {
+  background: rgba(255, 255, 255, 0.1)!important;
+  border-color: rgba(255, 255, 255, 0.15)!important;
+  color: #FFFFFF!important;
+}
+
+.pagination a.page-number:hover,
+.pagination .extend:hover {
+  color: #FF791B!important;
+}
+
+.pagination .current {
+  background: rgba(255, 255, 255, 0.1)!important;
+  border-color: rgba(255, 255, 255, 0.15)!important;
+  color: #2997ff!important;
+}
+
+/* ===========================================
+   侧边栏保持暗色玻璃，与背景光斑融合
+   =========================================== */
+#aside-content .card-widget {
+  background: rgba(18, 18, 24, 0.65);
+  backdrop-filter: blur(var(--blur-amount));
+  color: #FFFFFF;
+}
+
+.site-data a .headline {
+  color: #D2D2DC!important;
+}
+
+.site-data a .length-num {
+  color: #D2D2DC!important;
+}
+
+.site-data a:hover .headline,
+.site-data a:hover .length-num  {
+  color: #FFFFFF!important;
+}
+
+.aside-list-item .content .title {
+  color: #D2D2DC!important;
+}
+
+.aside-list-item .content .title:hover {
+  color: #FFFFFF!important;
+}
+
+.aside-list-item .content time {
+  color: #9A9AAC!important;
+}
+
+.card-category-list-item a {
+  color: #D2D2DC!important;
+}
+
+.card-category-list-item a:hover {
+  color: #FFFFFF!important;
+}
+
+#content-inner .aside-content .card-widget .card-tag-cloud a:hover{
+  color: #FFFFFF!important;
+}
+
+.card-archive-list-link {
+  color: #D2D2DC!important;
+}
+
+.card-archive-list-link:hover {
+  color: #FFFFFF!important;
+}
+
+.toc-content .toc-item a {
+  color: #D2D2DC!important;
+}
+
+/* ===========================================
+   文章正文排版 · 液态暗色
+   =========================================== */
+
+/* === 基础正文容器 === */
+#article-container,
+.post-content {
+  color: #D2D2DC;
+}
+
+/* === 标题 === */
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+  color: #FFFFFF;
+}
+
+/* === 段落与行内元素 === */
+
+/* 粗体：仅比正文稍亮 */
+.post-content strong {
+  color: #E8E8F0;
+}
+
+/* 斜体保持继承颜色 */
+.post-content em {
+  color: inherit;
+}
+
+/* 粗斜体同样 */
+.post-content em strong,
+.post-content strong em {
+  color: #E8E8F0;
+}
+
+/* 删除线 */
+.post-content s,
+.post-content del {
+  color: #6A6A7A;
+  text-decoration-color: rgba(255,255,255,0.3);
+}
+
+/* 下划线 */
+.post-content u {
+  text-decoration-color: rgba(255,255,255,0.7);
+}
+
+/* 高亮标记 */
+.post-content mark {
+  background: #FF791B;
+  color: #FFFFFF;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+/* 键盘按键 */
+.post-content kbd {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 3px;
+  padding: 0.1em 0.4em;
+  color: #FFFFFF;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.3);
+}
+
+/* 缩写 */
+.post-content abbr {
+  text-decoration: underline dotted rgba(255,255,255,0.4);
+  cursor: help;
+}
+
+/* === 引用块 === */
+.post-content blockquote {
+  border-left: 6px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.02);
+  color: #9A9AAC;
+}
+.post-content blockquote blockquote {
+  border-left-color: rgba(255, 255, 255, 0.06);
+}
+
+/* === 列表 === */
+.post-content ul,
+.post-content ol {
+  color: #D2D2DC;
+}
+
+/* 行内代码 */
+.post-content code {
+  background: rgba(255, 255, 255, 0.04);
+  color: #E0E0EA;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* === 代码块（整块） === */
+.post-content .highlight,
+.post-content pre {
+  background: rgba(0, 0, 0, 0.3)!important;       /* 内凹深色背景 */
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px!important;
+  overflow-x: auto;
+}
+
+.post-content .highlight pre {
+  background: inherit!important;
+}
+
+/* 代码块工具栏（如果有）可保留原样，仅微调背景 */
+.post-content .highlight-tools {
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(235, 11, 11, 0.04);
+}
+
+/* === 表格 === */
+.post-content .table-wrap table {
+  width: 100%;
+  border-collapse: collapse!important;
+  margin: 1.2em 0;
+  color: #D2D2DC;
+}
+.post-content th {
+  background: rgba(255, 255, 255, 0.03);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+}
+.post-content td {
+  padding: 0.5em 0.8em;
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+}
+
+/* === 分割线 === */
+/* === 分割线 === */
+.post-content hr {
+  border: 0;
+  height: 1.2px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 2em 0;
+}
+
+/* === 链接 === */
+.post-content a {
+  color: #7AAAE0;
+}
+.post-content a:hover {
+  border-bottom-color: rgba(255,255,255,0.5);
+}
+
+/* === 图片 === */
+.post-content img {
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: border-color 0.2s;
+}
+.post-content img:hover {
+  border-color: rgba(255,255,255,0.15);
+}
+
+/* === 脚注 === */
+.post-content sup a {
+  color: var(--hover-soft);
+  font-size: 0.75em;
+  text-decoration: none;
+  border-bottom: none;
+}
+.post-content sup a:hover {
+  color: #FFFFFF;
+}
+
+/* === 折叠面板 === */
+.post-content details {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 0.6em 1em;
+  margin: 1em 0;
+}
+.post-content summary {
+  color: #FFFFFF;
+  cursor: pointer;
+  font-weight: 500;
+  outline: none;
+}
+.post-content details[open] summary {
+  margin-bottom: 0.5em;
+}
+
+/* === 定义列表 === */
+.post-content dt {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+.post-content dd {
+  color: #D2D2DC;
+  margin-left: 1em;
+  margin-bottom: 0.5em;
+}
+
+/* === 数学公式 === */
+.post-content .katex {
+  color: #FFFFFF;
+}
+
+/* === 视频等嵌入内容 === */
+.post-content iframe,
+.post-content video {
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  display: block;          /* 关键：变成块级元素 */
+  margin: 1.5em auto;      /* 上下保持 1.5em，左右自动（居中） */
+  max-width: 100%;
+}
+
+/* post页 元信息 */
+#post-info #post-meta a:hover {
+  color:#EEEEEE;
+}
+
+/* post页底部的其余组件*/
+/* copyright组件 */
+#post .post-copyright {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06)!important;
+  color: #EEEEEE;
+}
+
+#post .post-copyright:hover {
+  box-shadow: none;
+}
+
+#post .post-copyright::before,
+#post .post-copyright .post-copyright-meta{
+  color: #FFFFFF;
+}
+
+#post .post-copyright a {
+  color: #7AAAE0;
+}
+
+/* 文章底部标签 */
+#post .tag_share .post-meta__tags {
+  background: rgba(20, 22, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #EEEEEE;
+  transition: all 0.2s ease;
+}
+
+#post .tag_share .post-meta__tags:hover {
+  color: #FFFFFF;
+  background: rgba(40, 44, 52, 0.95);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* 底部分享组件 */
+#post .tag_share .post-share .social-share .social-share-icon {
+  background: rgba(20, 22, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #B0B8C8;
+  transition: all 0.2s ease;
+}
+
+#post .tag_share .post-share .social-share .social-share-icon:hover {
+  color: #FFFFFF;
+  background: rgba(40, 44, 52, 0.95);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* 赞助组件 */
+#post .post-reward .reward-button {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* 页面底部的上/下一篇文章组件 */
+#post #pagination.pagination-post .pagination-related {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* 页面底部的相关推荐组件 */
+#post .relatedPosts .headline {
+  color: #FFFFFF;
+}
+
+#post .relatedPosts .relatedPosts-list .pagination-related {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* 评论模块 */
+#post-comment .comment-head {
+  color: #FFFFFF;
+}
+
+/* footer */
+#footer a:hover {
+  color: #EEEEEE;
+  text-decoration: underline;
+}
+
+/* 归档、分类、标签页设置 */
+#archive,
+#tag,
+#category,
+.article-sort-item-time,
+.article-sort-item-title,
+.article-sort-item-title:hover {
+  color: #FFFFFF;
+}
+
+/* 分类页 */
+.page.type-categories .category-list-item a {
+  color: #EEEEEE;
+}
+.page.type-categories li.category-list-item::before {
+  border-color: #EFEFEFEF;
+}
+.page.type-categories li.category-list-item:hover::before {
+  border-color: #FF791B;
+}
+.page.type-categories .category-list-item:hover a:hover {
+  color: #FF791B;
+}
+
+/* 友链页 */
+.page.type-link .flink h2{
+  color: #FFFFFF;
+}
+
+.page.type-link .flink a {
+  color: #EEEEEE!important;
+}
+
+.page.type-link .flink a:hover {
+  color: #FF791B!important;
+}
+

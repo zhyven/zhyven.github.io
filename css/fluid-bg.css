@@ -1,0 +1,64 @@
+/* 定义流体画布的位置和行为 */
+#fluid-bg {
+  position: absolute;  /* 相对于它的父容器 #page-header 进行定位 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;          /* 让流体背景在文字内容的下面 */
+  pointer-events: auto; /* 允许鼠标直接拖拽流体 */
+  display: block;
+}
+
+/* 顶部站点标题 */
+#site-info #site-title {
+  font-size: calc(3rem + 4vw);
+}
+
+/* 确保文字内容显示在流体上方 */
+#site-info,
+#page-site-info {
+  position: relative;
+  z-index: 2;
+  pointer-events: none; /* 让鼠标事件穿透文字区域，直接作用到 canvas 上 */
+}
+
+/* 确保导航栏在流体上方 */
+#nav {
+  position: relative;
+  z-index: 3;
+}
+
+/* 给第一屏的内容加一点保护色，防止浅色流体让白色文字看不清 */
+#page-header #site-info {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* 如果你的主题是深色模式，可能需要调整保护色 */
+[data-theme="dark"] #page-header #site-info {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+@media (max-width: 768px) {
+  /* 所有链接都必须可点击 */
+  #site-info a {
+    pointer-events: auto !important;
+  }
+
+  /* 单独提升社交图标容器，确保它在最上层且可点 */
+  #site_social_icons {
+    position: relative;
+    z-index: 5;
+    pointer-events: auto !important;
+  }
+
+  #page-header.full_page {
+    height: 100vh;
+  }
+
+  #fluid-bg {
+    touch-action: pan-y;          /* 告诉浏览器优先处理垂直滚动 */
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+}
